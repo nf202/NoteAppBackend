@@ -48,3 +48,45 @@ def get_note(request):
             return HttpResponse('No note found', status=404)
     else:
         return HttpResponse('failure')
+
+@csrf_exempt
+def get_all_notes(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data.get('username')
+        notes = Note.objects.filter(username=username).values()
+        for note in notes:
+            images = Image.objects.filter(note_id=note['id']).values()
+            note['images'] = list(images)
+        return JsonResponse(list(notes), safe=False)
+    else:
+        return HttpResponse('failure')
+
+@csrf_exempt
+def change_note(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data.get('username')
+        time = data.get('time')
+        title = data.get('title')
+        note_text = data.get('note')
+        summary = data.get('summary')
+        images_data = data.get('images')
+        old_time = data.get('old_time')
+        note = Note.objects.filter(username=username, time=old_time).first()
+        if note:
+            note.title = title
+            note.note = note_text
+            note.summary = summary
+            note.time = time
+            note.save()
+            Image.objects.filter(note=note).delete()
+            for image_data in images_data:
+                start = image_data.get('start')
+                base64 = image_data.get('base64')
+                Image.objects.create(note=note, start=start, base64=base64)
+            return HttpResponse('success')
+        else:
+            return HttpResponse('No note found', status=404)
+    else:
+        return HttpResponse('failure')

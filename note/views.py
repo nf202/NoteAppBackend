@@ -11,13 +11,14 @@ def store_note(request):
         data = json.loads(request.body)
         username = data.get('username')
         title = data.get('title')
+        category = data.get('category')
         note_text = data.get('note')
         summary = data.get('summary')
         time = data.get('time')
         images_data = data.get('images')
 
         # 创建一个新的Note对象
-        note = Note.objects.create(username=username, title=title, note=note_text, summary=summary, time=time)
+        note = Note.objects.create(username=username, title=title, category=category, note=note_text, summary=summary, time=time)
 
         # 对于每个图像数据，创建一个新的Image对象
         for image_data in images_data:
@@ -69,6 +70,7 @@ def change_note(request):
         username = data.get('username')
         time = data.get('time')
         title = data.get('title')
+        category = data.get('category')
         note_text = data.get('note')
         summary = data.get('summary')
         images_data = data.get('images')
@@ -76,6 +78,7 @@ def change_note(request):
         note = Note.objects.filter(username=username, time=old_time).first()
         if note:
             note.title = title
+            note.category = category
             note.note = note_text
             note.summary = summary
             note.time = time

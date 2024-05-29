@@ -37,7 +37,6 @@ def get_note(request):
         data = json.loads(request.body)
         username = data.get('username')
         time = data.get('time')
-        print(username, time)
         # 查询数据库，获取所有的Note对象
         note = Note.objects.filter(username=username, time=time).first()
         if note:
@@ -91,5 +90,22 @@ def change_note(request):
             return HttpResponse('success')
         else:
             return HttpResponse('No note found', status=404)
+    else:
+        return HttpResponse('failure')
+
+@csrf_exempt
+def filter_note(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data.get('username')
+        category = data.get('category')
+        search_text = data.get('search_text')
+        notes1 = Note.objects.filter(username=username, category=category, note__contains=search_text).values()
+        notes2 = Note.objects.filter(username=username, category=category, title__contains=search_text).values()
+        notes = list(notes1) + [note for note in notes2 if note not in notes1]
+        for note in notes:
+            images = Image.objects.filter(note_id=note['id']).values()
+            note['images'] = list(images)
+        return JsonResponse(list(notes), safe=False)
     else:
         return HttpResponse('failure')

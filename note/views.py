@@ -1,3 +1,4 @@
+import requests
 from django.forms import model_to_dict
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -5,6 +6,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from .models import Note, Image
 import json
 
+
+API_KEY = 'Nh6JFEgpyK8Pb5K51mjWSTBy'
+SECRET_KEY = '90F6aVE2zdlvzJgHJFoQNnHh8uELVShB'
 @csrf_exempt
 def store_note(request):
     if request.method == 'POST':
@@ -109,3 +113,38 @@ def filter_note(request):
         return JsonResponse(list(notes), safe=False)
     else:
         return HttpResponse('failure')
+
+
+
+@csrf_exempt
+def wenxin_note(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        note = data.get('note')
+        if note:
+            url = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/ernie-speed-128k?access_token=" + get_access_token()
+            # 根据note的内容，生成一个问题，具体是基于note生成摘要的问题
+            question = "给你如下文段，帮我给出摘要，摘要限制在50字以内：" + note
+            payload = json.dumps({
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": question
+                    }
+                ]
+            })
+            headers = {
+                'Content-Type': 'application/json'
+            }
+
+            response = requests.request("POST", url, headers=headers, data=payload)
+            response_content = json.loads(response.content)
+            abstract = response_content.get('result')
+            return HttpResponse(abstract)
+        else:
+            return HttpResponse('No note found', status=404)
+
+def get_access_token():
+    url = "https://aip.baidubce.com/oauth/2.0/token"
+    params = {"grant_type": "client_credentials", "client_id": API_KEY, "client_secret": SECRET_KEY}
+    return str(requests.post(url, params=params).json().get("access_token"))

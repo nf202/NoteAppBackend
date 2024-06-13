@@ -107,6 +107,7 @@ def filter_note(request):
         notes1 = Note.objects.filter(username=username, category=category, note__contains=search_text).values()
         notes2 = Note.objects.filter(username=username, category=category, title__contains=search_text).values()
         notes = list(notes1) + [note for note in notes2 if note not in notes1]
+        print(len(notes))
         for note in notes:
             images = Image.objects.filter(note_id=note['id']).values()
             note['images'] = list(images)
@@ -123,7 +124,6 @@ def wenxin_note(request):
         note = data.get('note')
         if note:
             url = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/ernie-speed-128k?access_token=" + get_access_token()
-            # 根据note的内容，生成一个问题，具体是基于note生成摘要的问题
             question = "给你如下文段，帮我给出摘要，摘要限制在50字以内：" + note
             payload = json.dumps({
                 "messages": [

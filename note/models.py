@@ -12,3 +12,8 @@ class Image(models.Model):
     note = models.ForeignKey(Note, related_name='images', on_delete=models.CASCADE)
     start = models.IntegerField()
     base64 = models.TextField()
+    
+class Vocal(models.Model):
+    note = models.ForeignKey(Note, related_name='vocals', on_delete=models.CASCADE)
+    start = models.IntegerField()
+    base64 = models.TextField()

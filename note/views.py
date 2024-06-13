@@ -3,7 +3,7 @@ from django.forms import model_to_dict
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ObjectDoesNotExist
-from .models import Note, Image
+from .models import Note, Image, Audio
 import json
 
 
@@ -20,6 +20,7 @@ def store_note(request):
         summary = data.get('summary')
         time = data.get('time')
         images_data = data.get('images')
+        audios_date = data.get('audios')
 
         # 创建一个新的Note对象
         note = Note.objects.create(username=username, title=title, category=category, note=note_text, summary=summary, time=time)
@@ -29,6 +30,11 @@ def store_note(request):
             start = image_data.get('start')
             base64 = image_data.get('base64')
             Image.objects.create(note=note, start=start, base64=base64)
+            
+        # 对于每个音频数据, 创建一个新的Vocal对象
+        for audio_data in audios_date:
+            base64 = audio_data.get('base64')
+            Audio.objects.create(note=note, base64=base64)
 
         return HttpResponse('success')
 
@@ -47,6 +53,8 @@ def get_note(request):
             note_values = model_to_dict(note)  # Convert the Note instance to a dictionary
             images = Image.objects.filter(note=note).values()
             note_values['images'] = list(images)
+            audios = Audio.objects.filter(note=note).values()
+            note_values['audios'] = list(audios)
             return JsonResponse(note_values)
         else:
             return HttpResponse('No note found', status=404)
@@ -62,6 +70,8 @@ def get_all_notes(request):
         for note in notes:
             images = Image.objects.filter(note_id=note['id']).values()
             note['images'] = list(images)
+            audios = Audio.objects.filter(note_id=note['id']).values()
+            note['audios'] = list(audios)
         return JsonResponse(list(notes), safe=False)
     else:
         return HttpResponse('failure')
@@ -77,6 +87,7 @@ def change_note(request):
         note_text = data.get('note')
         summary = data.get('summary')
         images_data = data.get('images')
+        audios_data = data.get('audios')
         old_time = data.get('old_time')
         note = Note.objects.filter(username=username, time=old_time).first()
         if note:
@@ -91,6 +102,11 @@ def change_note(request):
                 start = image_data.get('start')
                 base64 = image_data.get('base64')
                 Image.objects.create(note=note, start=start, base64=base64)
+            # delete all audio related to note, then re-create them
+            Audio.objects.filter(note=note).delete()
+            for audio_data in audios_data:
+                base64 = audio_data.get('base64')
+                Audio.objects.create(note=note, base64=base64)
             return HttpResponse('success')
         else:
             return HttpResponse('No note found', status=404)

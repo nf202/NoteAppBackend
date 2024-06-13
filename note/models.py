@@ -13,7 +13,6 @@ class Image(models.Model):
     start = models.IntegerField()
     base64 = models.TextField()
     
-class Vocal(models.Model):
-    note = models.ForeignKey(Note, related_name='vocals', on_delete=models.CASCADE)
-    start = models.IntegerField()
+class Audio(models.Model):
+    note = models.ForeignKey(Note, related_name='audios', on_delete=models.CASCADE)
     base64 = models.TextField()

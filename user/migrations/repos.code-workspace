@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "../../.."
+		},
+		{
+			"name": "NoteApp",
+			"path": "../../../NoteApp"
+		},
+		{
+			"name": "NoteAppBackend",
+			"path": "../.."
+		}
+	],
+	"settings": {}
+}
